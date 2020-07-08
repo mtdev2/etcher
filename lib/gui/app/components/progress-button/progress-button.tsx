@@ -52,7 +52,7 @@ interface ProgressButtonProps {
 	percentage: number;
 	position: number;
 	disabled: boolean;
-	cancel: () => void;
+	cancel: (type: string) => void;
 	callback: () => void;
 	warning?: boolean;
 }
@@ -63,11 +63,14 @@ const colors = {
 	verifying: '#1ac135',
 } as const;
 
-const CancelButton = styled((props) => (
-	<Button plain {...props}>
-		Cancel
-	</Button>
-))`
+const CancelButton = styled(({ type, onClick, ...props }) => {
+	const status = type === 'verifying' ? 'Skip' : 'Cancel';
+	return (
+		<Button plain onClick={() => onClick(status)} {...props}>
+			{status}
+		</Button>
+	);
+})`
 	font-weight: 600;
 	&&& {
 		width: auto;
@@ -78,10 +81,13 @@ const CancelButton = styled((props) => (
 
 export class ProgressButton extends React.PureComponent<ProgressButtonProps> {
 	public render() {
+		const type = this.props.type;
+		const percentage = this.props.percentage;
+		const warning = this.props.warning;
 		const { status, position } = fromFlashState({
-			type: this.props.type,
+			type,
+			percentage,
 			position: this.props.position,
-			percentage: this.props.percentage,
 		});
 		if (this.props.active) {
 			return (
@@ -99,21 +105,24 @@ export class ProgressButton extends React.PureComponent<ProgressButtonProps> {
 					>
 						<Flex>
 							<Txt color="#fff">{status}&nbsp;</Txt>
-							<Txt color={colors[this.props.type]}>{position}</Txt>
+							<Txt color={colors[type]}>{position}</Txt>
 						</Flex>
-						<CancelButton onClick={this.props.cancel} color="#00aeef" />
+						{type && (
+							<CancelButton
+								type={type}
+								onClick={this.props.cancel}
+								color="#00aeef"
+							/>
+						)}
 					</Flex>
-					<FlashProgressBar
-						background={colors[this.props.type]}
-						value={this.props.percentage}
-					/>
+					<FlashProgressBar background={colors[type]} value={percentage} />
 				</>
 			);
 		}
 		return (
 			<StepButton
-				primary={!this.props.warning}
-				warning={this.props.warning}
+				primary={!warning}
+				warning={warning}
 				onClick={this.props.callback}
 				disabled={this.props.disabled}
 				style={{
