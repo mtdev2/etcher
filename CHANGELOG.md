@@ -3,6 +3,26 @@
 All notable changes to this project will be documented in this file.
 This project adheres to [Semantic Versioning](http://semver.org/).
 
+# v1.5.103
+## (2020-08-17)
+
+* Update @balena/udif, don't bundle htmlparser2 into the writer [Alexis Svinartchouk]
+* Change isFocused check to isVisible in tests [Alexis Svinartchouk]
+* Fix running tests on Windows [Alexis Svinartchouk]
+* Update electron to 9.2.0 [Alexis Svinartchouk]
+* Update etcher-sdk to ^4.1.23 [Alexis Svinartchouk]
+* Move linting and testing into package.json [Alexis Svinartchouk]
+* Set module: es2015 in tsconfig.json [Alexis Svinartchouk]
+* Replace native elevator with sudo-prompt on windows [Alexis Svinartchouk]
+* Don't import WeakMap polyfill in deep-map-keys [Alexis Svinartchouk]
+* Update etcher-sdk to ^4.1.22 [Alexis Svinartchouk]
+* Don't use lodash in child-writer.js [Alexis Svinartchouk]
+* Optimize svgs [Alexis Svinartchouk]
+* User regular stream in lzma-native instead of readable-stream [Alexis Svinartchouk]
+* Update dependencies [Alexis Svinartchouk]
+* Remove Bluebird [Alexis Svinartchouk]
+* Update etcher-sdk to ^4.1.20 [Alexis Svinartchouk]
+
 # v1.5.102
 ## (2020-07-27)
 
