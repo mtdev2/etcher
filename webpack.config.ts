@@ -24,7 +24,11 @@ import * as path from 'path';
 import { env } from 'process';
 import * as SimpleProgressWebpackPlugin from 'simple-progress-webpack-plugin';
 import * as TerserPlugin from 'terser-webpack-plugin';
-import { BannerPlugin, NormalModuleReplacementPlugin } from 'webpack';
+import {
+	BannerPlugin,
+	IgnorePlugin,
+	NormalModuleReplacementPlugin,
+} from 'webpack';
 
 /**
  * Don't webpack package.json as mixpanel & sentry tokens
@@ -135,8 +139,20 @@ const commonConfig = {
 			},
 			{
 				test: /\.tsx?$/,
-				use: 'ts-loader',
+				use: [
+					{
+						loader: 'ts-loader',
+						options: {
+							configFile: 'tsconfig.webpack.json',
+						},
+					},
+				],
 			},
+			// don't import WeakMap polyfill in deep-map-keys (required in corvus)
+			replace(/node_modules\/deep-map-keys\/lib\/deep-map-keys\.js$/, {
+				search: "var WeakMap = require('es6-weak-map');",
+				replace: '',
+			}),
 			// force axios to use http backend (not xhr) to support streams
 			replace(/node_modules\/axios\/lib\/defaults\.js$/, {
 				search: './adapters/xhr',
@@ -154,16 +170,24 @@ const commonConfig = {
 					replace: 'bindings',
 				},
 			),
-			// remove node-pre-gyp magic from lzma-native
-			replace(/node_modules\/lzma-native\/index\.js$/, {
-				search: 'require(binding_path)',
-				replace: () => {
-					return `require('./${path.posix.join(
-						LZMA_BINDINGS_FOLDER,
-						'lzma_native.node',
-					)}')`;
+			replace(
+				/node_modules\/lzma-native\/index\.js$/,
+				// remove node-pre-gyp magic from lzma-native
+				{
+					search: 'require(binding_path)',
+					replace: () => {
+						return `require('./${path.posix.join(
+							LZMA_BINDINGS_FOLDER,
+							'lzma_native.node',
+						)}')`;
+					},
 				},
-			}),
+				// use regular stream module instead of readable-stream
+				{
+					search: "var stream = require('readable-stream');",
+					replace: "var stream = require('stream');",
+				},
+			),
 			// remove node-pre-gyp magic from usb
 			replace(/node_modules\/@balena.io\/usb\/usb\.js$/, {
 				search: 'require(binding_path)',
@@ -224,6 +248,8 @@ const commonConfig = {
 		extensions: ['.node', '.js', '.json', '.ts', '.tsx'],
 	},
 	plugins: [
+		// Rendition imports highlight.js default.css file, we don't need it
+		new IgnorePlugin({ resourceRegExp: /\.css$/ }),
 		new SimpleProgressWebpackPlugin({
 			format: process.env.WEBPACK_PROGRESS || 'verbose',
 		}),
